@@ -72,5 +72,6 @@ flutter {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.google.firebase:firebase-bom:32.2.3"
+    implementation "com.google.firebase:firebase-auth"
     // implementatio 'com.google.firebase:firebase-bom:32.2.3'
 }

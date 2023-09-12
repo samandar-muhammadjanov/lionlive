@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 typedef void StreamStateCallback(MediaStream stream);
 
@@ -23,7 +24,12 @@ class Signaling {
   String? roomId;
   String? currentRoomText;
   StreamStateCallback? onAddRemoteStream;
-
+  IO.Socket? socket;
+/* 
+  
+  create room
+  
+  */
   Future<String> createRoom(RTCVideoRenderer remoteRenderer) async {
     FirebaseFirestore db = FirebaseFirestore.instance;
     DocumentReference roomRef = db.collection('rooms').doc();
@@ -104,9 +110,38 @@ class Signaling {
       });
     });
     // Listen for remote ICE candidates above
+    socket = IO.io("http://192.168.1.108:2000", <String, dynamic>{
+      'autoConnect': true,
+      'transports': ['websocket'],
+    });
+    socket!.onConnect((data) => print("Connected"));
 
+    socket!.emit("request-init", {
+      "requestor": {
+        "DOB": DateTime(2000, 1, 1).toIso8601String(),
+        "gender": "guy",
+        "regionName": "Tashkent",
+        "name": "Samandar",
+        "description": "hi"
+      },
+      "filters": {}
+    });
+
+    socket!.on("caller", (data) {
+      socket?.emit("send-direct", {
+        "recivier": data,
+        "event": "send_offer",
+        "body": {"offer": offer.sdp, "caller": socket!.id}
+      });
+    });
     return roomId;
   }
+
+  /* 
+  
+  joining room
+  
+  */
 
   Future<void> joinRoom(String roomId, RTCVideoRenderer remoteVideo) async {
     FirebaseFirestore db = FirebaseFirestore.instance;
@@ -154,6 +189,7 @@ class Signaling {
         RTCSessionDescription(offer['sdp'], offer['type']),
       );
       var answer = await peerConnection!.createAnswer();
+
       print('Created Answer $answer');
 
       await peerConnection!.setLocalDescription(answer);
@@ -179,6 +215,16 @@ class Signaling {
             ),
           );
         });
+      });
+      socket!.on("callee", (data) {
+        socket?.emit(
+          "send-direct",
+          {
+            "recivier": data,
+            "event": "send_answer",
+            "body": answer.sdp,
+          },
+        );
       });
     }
   }

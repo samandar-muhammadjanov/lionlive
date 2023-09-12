@@ -1,11 +1,7 @@
-import 'dart:math';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:quagga/functions/signaling.dart';
 import 'package:quagga/utils/colors.dart';
-import 'package:flutter_gif/flutter_gif.dart';
 
 class VideoChat extends StatefulWidget {
   const VideoChat({super.key});
@@ -16,15 +12,17 @@ class VideoChat extends StatefulWidget {
 
 class _VideoChatState extends State<VideoChat> {
   Signaling signaling = Signaling();
-  RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   String? roomId;
-
+  TextEditingController controller = TextEditingController();
   @override
   void initState() {
     super.initState();
-    initRenders();
-    createRoom();
+    Future.microtask(() {
+      initRenders();
+      createRoom();
+    });
   }
 
   @override
@@ -40,15 +38,19 @@ class _VideoChatState extends State<VideoChat> {
 
     signaling.onAddRemoteStream = ((stream) {
       _remoteRenderer.srcObject = stream;
-      setState(() {});
     });
     signaling.openUserMedia(_localRenderer, _remoteRenderer);
+    setState(() {});
   }
 
   List<String> rooms = [];
-  FlutterGifController? controller;
   void createRoom() async {
     roomId = await signaling.createRoom(_remoteRenderer);
+    print("=========");
+    print(roomId);
+    print("=========");
+
+    setState(() {});
   }
 
   @override
@@ -60,6 +62,9 @@ class _VideoChatState extends State<VideoChat> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              TextField(
+                controller: controller,
+              ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: SizedBox(
@@ -73,8 +78,8 @@ class _VideoChatState extends State<VideoChat> {
                           mirror: true,
                         ),
                         Container(
-                            margin: EdgeInsets.all(10),
-                            padding: EdgeInsets.all(5),
+                            margin: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
                                 color: kLightBlueColor,
                                 borderRadius: BorderRadius.circular(3)),
@@ -88,7 +93,7 @@ class _VideoChatState extends State<VideoChat> {
                       ],
                     )),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               ClipRRect(
@@ -101,37 +106,31 @@ class _VideoChatState extends State<VideoChat> {
                           RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                     )),
               ),
-              Spacer(),
+              const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   FloatingActionButton(
                     onPressed: () async {
-                      final db = await FirebaseFirestore.instance
-                          .collection("rooms")
-                          .get();
-
-                      for (var i = 0; i < db.docs.length; i++) {
-                        setState(() {
-                          rooms.addAll({db.docs[i].id});
-                        });
-                        Random random = Random();
-                        int randomIndex = random.nextInt(rooms.length);
-                        print(rooms[randomIndex]);
-                      }
+                      signaling.openUserMedia(_localRenderer, _remoteRenderer);
                     },
-                    child: Icon(Icons.camera),
+                    child: const Icon(Icons.camera),
                   ),
                   FloatingActionButton(
                     onPressed: () {
                       signaling.hangUp(_localRenderer);
                     },
                     backgroundColor: Colors.red,
-                    child: Icon(Icons.phone_disabled_rounded),
+                    child: const Icon(Icons.phone_disabled_rounded),
                   ),
                   FloatingActionButton(
-                    onPressed: () {},
-                    child: Icon(Icons.keyboard_double_arrow_right_rounded),
+                    onPressed: () {
+                      signaling.joinRoom(
+                          "GzYh07hJy1hkvoPy66XA", _remoteRenderer);
+                      setState(() {});
+                    },
+                    child:
+                        const Icon(Icons.keyboard_double_arrow_right_rounded),
                   ),
                 ],
               ),

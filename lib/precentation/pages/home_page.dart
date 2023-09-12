@@ -1,16 +1,10 @@
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:quagga/functions/showAd.dart';
-import 'package:quagga/precentation/pages/test.dart';
 import 'package:quagga/precentation/pages/video_chat_page.dart';
 import 'package:quagga/utils/colors.dart';
 import 'package:quagga/utils/extantion.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,21 +15,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
-  bool isStarted = false;
-  // IO.Socket? socket;
 
   void startChatting() {
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const TestPage(),
+          builder: (context) => const VideoChat(),
         ));
   }
 
   @override
   void initState() {
     super.initState();
-
     Future.delayed(
       const Duration(seconds: 2),
       () {

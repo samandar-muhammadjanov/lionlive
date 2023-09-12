@@ -1,7 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:quagga/precentation/pages/auth_pages/registration_page.dart';
+import 'package:quagga/precentation/widgets/google_phone.dart';
+import 'package:quagga/precentation/widgets/login_via_email.dart';
+import 'package:quagga/precentation/widgets/register_widget.dart';
 import 'package:quagga/utils/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,6 +15,14 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  bool isEmail = true;
+
+  void changeToPhone(bool isEmail) {
+    setState(() {
+      this.isEmail = isEmail;
+    });
+  }
+
   bool isPasswrodVisible = true;
   final auth = FirebaseAuth.instance;
   UserCredential? userCredential;
@@ -33,112 +43,15 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
-                Text(
-                  "Authintication",
-                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                        color: kWhite,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                TextFormField(
-                  validator: (value) {
-                    if (value!.isEmpty || !value.contains("@")) {
-                      return "Not valid email";
-                    }
-                    return null;
-                  },
-                  key: const ValueKey("email"),
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: kGreyColor,
-                    hintText: "Email",
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                TextFormField(
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "This field cannot be empty";
-                    }
-                    return null;
-                  },
-                  obscureText: isPasswrodVisible,
-                  key: const ValueKey("password"),
-                  controller: passwordController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: kGreyColor,
-                    hintText: "Password",
-                    suffixIcon: IconButton(
-                      onPressed: () => setState(
-                          () => isPasswrodVisible = !isPasswrodVisible),
-                      icon: Icon(isPasswrodVisible
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined),
-                    ),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 40,
+                LoginForm(
+                  key: const ValueKey("loginviaemail"),
+                  emailController: emailController,
+                  isPasswrodVisible: isPasswrodVisible,
+                  passwordController: passwordController,
+                  isEmail: isEmail,
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    FocusScope.of(context).unfocus();
-                    if (formKey.currentState!.validate()) {
-                      try {
-                        userCredential = await auth.signInWithEmailAndPassword(
-                            email: emailController.text,
-                            password: passwordController.text);
-                        print(userCredential);
-                      } on FirebaseAuthException catch (e) {
-                        if (e.code == 'user-not-found') {
-                          ScaffoldMessenger.of(context).showMaterialBanner(
-                              MaterialBanner(
-                                  content: const Text(
-                                      "No user found for that email."),
-                                  actions: [
-                                IconButton(
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .hideCurrentMaterialBanner();
-                                    },
-                                    icon: const Icon(Icons.close))
-                              ]));
-                        } else if (e.code == 'wrong-password') {
-                          ScaffoldMessenger.of(context).showMaterialBanner(
-                            MaterialBanner(
-                              content: const Text(
-                                  "Wrong password provided for that user."),
-                              actions: [
-                                IconButton(
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .hideCurrentMaterialBanner();
-                                    },
-                                    icon: const Icon(Icons.close))
-                              ],
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        print(e);
-                      }
-                    }
-                  },
+                  onPressed: loginViaEmail,
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     shadowColor: kPrimaryColor,
@@ -157,30 +70,53 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.pushReplacementNamed(
-                      context, RegistrationPage.routeName),
-                  child: Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have a account?",
-                          style: TextStyle(fontSize: 18, color: kWhite),
-                        ),
-                        Text(
-                          "Register right now",
-                          style: TextStyle(fontSize: 18, color: kOrangeColor),
-                        ),
-                      ],
-                    ),
-                  ),
+                GoogleSignInAndPhoneNumberSignIn(
+                  text: emailController.text,
                 ),
+                const Spacer(),
+                const RegisterWidget(),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  void loginViaEmail() async {
+    FocusScope.of(context).unfocus();
+    if (formKey.currentState!.validate()) {
+      try {
+        userCredential = await auth.signInWithEmailAndPassword(
+            email: emailController.text, password: passwordController.text);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found') {
+          ScaffoldMessenger.of(context).showMaterialBanner(MaterialBanner(
+              content: const Text("No user found for that email."),
+              actions: [
+                IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                    },
+                    icon: const Icon(Icons.close))
+              ]));
+        } else if (e.code == 'wrong-password') {
+          ScaffoldMessenger.of(context).showMaterialBanner(
+            MaterialBanner(
+              content: const Text("Wrong password provided for that user."),
+              actions: [
+                IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                    },
+                    icon: const Icon(Icons.close))
+              ],
+            ),
+          );
+        }
+      } catch (e) {
+        print(e);
+      }
+    }
   }
 }

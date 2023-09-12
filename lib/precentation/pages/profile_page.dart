@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:quagga/precentation/pages/auth_pages/login_page.dart';
 import 'package:quagga/utils/colors.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -7,17 +8,17 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Spacer(),
+          const Spacer(),
           ProfileHeader(),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
-          ProfileBody(),
-          Spacer(),
+          const ProfileBody(),
+          const Spacer(),
         ],
       ),
     );
@@ -80,6 +81,8 @@ class ProfileBody extends StatelessWidget {
           ListTile(
             onTap: () {
               FirebaseAuth.instance.signOut();
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                  LoginPage.routeName, (route) => false);
             },
             tileColor: Colors.red.withOpacity(0.4),
             shape:
@@ -105,31 +108,33 @@ class ProfileBody extends StatelessWidget {
 }
 
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({
+  ProfileHeader({
     super.key,
   });
 
+  final user = FirebaseAuth.instance.currentUser!;
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          decoration: BoxDecoration(
-              border: Border.all(color: kWhite, width: 2),
-              shape: BoxShape.circle),
-          child: const CircleAvatar(
-            radius: 70,
-            backgroundImage: NetworkImage(
-                "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dXNlcnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60"),
-          ),
-        ),
+        user.photoURL == null
+            ? SizedBox()
+            : Container(
+                decoration: BoxDecoration(
+                    border: Border.all(color: kWhite, width: 2),
+                    shape: BoxShape.circle),
+                child: CircleAvatar(
+                  radius: 70,
+                  backgroundImage: NetworkImage(user.photoURL!),
+                ),
+              ),
         const SizedBox(
           height: 16,
         ),
         Text(
-          "Chris Kay",
+          user.displayName ?? "",
           style: TextStyle(
             fontSize: 22,
             color: kGreyColor,

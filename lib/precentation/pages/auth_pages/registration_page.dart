@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:quagga/precentation/pages/auth_pages/login_page.dart';
-import 'package:quagga/precentation/pages/auth_pages/set_password_page.dart';
-import 'package:quagga/precentation/widgets/selectGender.dart';
+import 'package:quagga/precentation/widgets/google_phone.dart';
 import 'package:quagga/utils/colors.dart';
 
 class RegistrationPage extends StatefulWidget {
@@ -13,18 +11,8 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
-  
-  TextEditingController emailController = TextEditingController();
-  TextEditingController fullName = TextEditingController();
-  TextEditingController birthDate = TextEditingController();
-  TextEditingController description = TextEditingController();
+  TextEditingController controller = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  bool isMale = true;
-  void changeGender(bool isMale) {
-    setState(() {
-      this.isMale = isMale;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,14 +21,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       body: Form(
         key: formKey,
         child: Center(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(
-                16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const Spacer(),
                 Text(
                   "Registration",
                   style: Theme.of(context).textTheme.headlineSmall!.copyWith(
@@ -52,114 +39,73 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   height: 30,
                 ),
                 TextFormField(
-                  key: const ValueKey("email"),
+                  key: const ValueKey("controller"),
                   validator: (value) {
-                    if (value!.isEmpty || !value.contains("@")) {
-                      return "Not Valid Email";
+                    if (isNumeric(value!.split("+").join())) {
+                      if (value.isEmpty) {
+                        return "Not Valid Phone Number";
+                      }
+                    } else {
+                      if (value.isEmpty || !value.contains("@")) {
+                        return "Not Valid Email";
+                      }
                     }
                     return null;
                   },
-                  controller: emailController,
+                  controller: controller,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: kGreyColor,
-                    hintText: "Email",
+                    labelText: "Email or phone number",
+                    labelStyle: TextStyle(color: kOrangeColor),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: kOrangeColor),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(color: kOrangeColor),
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ),
                 const SizedBox(
                   height: 20,
-                ),
-                TextFormField(
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Not Valid Email";
-                    }
-                    return null;
-                  },
-                  key: const ValueKey("fullName"),
-                  controller: fullName,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: kGreyColor,
-                    hintText: "Full Name",
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                SelectGender(
-                  selectGender: changeGender,
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                TextFormField(
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Not Valid Email";
-                    }
-                    return null;
-                  },
-                  key: const ValueKey("birthDate"),
-                  controller: birthDate,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: kGreyColor,
-                    hintText: "Birth Date",
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                TextFormField(
-                  key: const ValueKey("description"),
-                  controller: description,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Not Valid Email";
-                    }
-                    return null;
-                  },
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: kGreyColor,
-                    hintText: "Description",
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 40,
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (formKey.currentState!.validate()) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SetPasswordPage(userData: {
-                              "email": emailController.text.trim(),
-                              "fullName": fullName.text,
-                              "gender": isMale ? "male" : "female",
-                              "birthDate": birthDate.text,
-                              "description": description.text
-                            }),
-                          ));
+                      if (isNumeric(
+                        controller.text.split("+").join(),
+                      )) {
+                        try {
+                          await FirebaseAuth.instance.verifyPhoneNumber(
+                            phoneNumber: controller.text,
+                            verificationCompleted:
+                                (PhoneAuthCredential credential) {},
+                            verificationFailed: (FirebaseAuthException e) {},
+                            codeSent:
+                                (String verificationId, int? resendToken) {},
+                            codeAutoRetrievalTimeout:
+                                (String verificationId) {},
+                          );
+                        } on FirebaseAuthException catch (e) {
+                          ScaffoldMessenger.of(context).showMaterialBanner(
+                            MaterialBanner(
+                              content: Text(e.message!),
+                              actions: [
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: Icon(Icons.close),
+                                )
+                              ],
+                            ),
+                          );
+                        } catch (e) {
+                          print(e);
+                        }
+                      } else {
+                        print("set password");
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -179,33 +125,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                GestureDetector(
-                  onTap: () => Navigator.pushReplacementNamed(
-                      context, LoginPage.routeName),
-                  child: Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Have a account?",
-                          style: TextStyle(fontSize: 18, color: kWhite),
-                        ),
-                        Text(
-                          "Log in",
-                          style: TextStyle(fontSize: 18, color: kOrangeColor),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                const Spacer(),
+                GoogleSignInAndPhoneNumberSignIn(text: controller.text),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  bool isNumeric(String text) {
+    final numericRegex = RegExp(r'^[0-9]');
+    return numericRegex.hasMatch(text);
   }
 }
