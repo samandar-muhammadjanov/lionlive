@@ -3,21 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>285812828995-g80u5n3abfqefti9h406jvb9ech523q4.apps.googleusercontent.com</string>
+	<string>844081111857-bnoontg2co9d9rgh4j96qgudj9pa5g7d.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.285812828995-g80u5n3abfqefti9h406jvb9ech523q4</string>
+	<string>com.googleusercontent.apps.844081111857-bnoontg2co9d9rgh4j96qgudj9pa5g7d</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>844081111857-r154bjebgucu2pg83u979vf4epan1k68.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyCe36jOjJoPfMniL6ysEj6rlaQT_MBRbqU</string>
+	<string>AIzaSyD2Kgj2OTDSKRU_aHXnH9iAVOG8FTuKxBw</string>
 	<key>GCM_SENDER_ID</key>
-	<string>285812828995</string>
+	<string>844081111857</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.quagga</string>
+	<string>com.lifellc.lionlive</string>
 	<key>PROJECT_ID</key>
-	<string>quagga-23ac3</string>
+	<string>quagga-49d9d</string>
 	<key>STORAGE_BUCKET</key>
-	<string>quagga-23ac3.appspot.com</string>
+	<string>quagga-49d9d.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +31,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:285812828995:ios:f28b6fb0906d0cbec91df6</string>
+	<string>1:844081111857:ios:45112eee47afb268e28610</string>
+	<key>DATABASE_URL</key>
+	<string>https://quagga-49d9d-default-rtdb.firebaseio.com</string>
 </dict>
 </plist>
