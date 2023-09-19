@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:quagga/functions/showAd.dart';
+import 'package:quagga/functions/show_advertising.dart';
 import 'package:quagga/precentation/pages/video_chat_page.dart';
 import 'package:quagga/utils/colors.dart';
 import 'package:quagga/utils/extantion.dart';
@@ -15,14 +15,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
-
-  void startChatting() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const VideoChat(),
-        ));
-  }
 
   @override
   void initState() {
@@ -105,8 +97,13 @@ class _HomePageState extends State<HomePage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 child: ElevatedButton.icon(
-                  onPressed: () async {
-                    startChatting();
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const VideoChat(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     elevation: 0,

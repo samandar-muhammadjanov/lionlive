@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:quagga/functions/signaling.dart';
+import 'package:quagga/functions/video_helpers.dart';
 import 'package:quagga/utils/colors.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class VideoChat extends StatefulWidget {
   const VideoChat({super.key});
@@ -11,17 +12,81 @@ class VideoChat extends StatefulWidget {
 }
 
 class _VideoChatState extends State<VideoChat> {
-  Signaling signaling = Signaling();
-  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
-  String? roomId;
-  TextEditingController controller = TextEditingController();
+  MediaStream? localStream;
+  MediaStream? remoteStream;
+  RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  RTCPeerConnection? peerConnection;
+  IO.Socket? socket;
+  Map<String, dynamic> configuration = {
+    'iceServers': [
+      {
+        'urls': [
+          'stun:stun.l.google.com:19302',
+          'stun:stun1.l.google.com:19302'
+        ]
+      }
+    ]
+  };
   @override
   void initState() {
+    initRenders();
+    connect();
+    _createPeerConnection();
     super.initState();
-    Future.microtask(() {
-      initRenders();
-      createRoom();
+  }
+
+  _getUserMedia() async {
+    var stream = await navigator.mediaDevices
+        .getUserMedia({'video': true, 'audio': true});
+
+    _localRenderer.srcObject = stream;
+
+    _remoteRenderer.srcObject = await createLocalMediaStream('key');
+    // _localRenderer.mirror = true;
+
+    return stream;
+  }
+
+  void connect() async {
+    socket = IO.io("https://server-j5u3e3fkia-uc.a.run.app/", <String, dynamic>{
+      'autoConnect': true,
+      'transports': ['websocket'],
+    });
+    socket!.onConnect((data) {
+      print("Connect");
+      socket!.emit("request-init", {
+        "requestor": {
+          "DOB": DateTime(2000, 1, 1).toIso8601String(),
+          "gender": "guy",
+          "regionName": "Tashkent",
+          "name": "Samandar",
+          "description": "hi"
+        },
+        "filters": {}
+      });
+
+      socket!.on(
+        "caller",
+        (data) => VideoHelper().handleCaller(
+            data, socket!, peerConnection!, localStream, remoteStream),
+      );
+
+      socket!.on(
+        "send-offer",
+        (data) => VideoHelper().handleSendOffer(
+            data, socket!, peerConnection!, localStream, remoteStream),
+      );
+
+      socket!.on(
+          "send-answer",
+          (data) => VideoHelper().handleSendAnswer(
+              data, peerConnection!, localStream, _remoteRenderer.srcObject));
+
+      socket!.on(
+        "send-ice",
+        (data) => VideoHelper().handleICE(data, peerConnection!),
+      );
     });
   }
 
@@ -35,21 +100,32 @@ class _VideoChatState extends State<VideoChat> {
   void initRenders() async {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
-
-    signaling.onAddRemoteStream = ((stream) {
-      _remoteRenderer.srcObject = stream;
-    });
-    signaling.openUserMedia(_localRenderer, _remoteRenderer);
-    setState(() {});
   }
 
-  List<String> rooms = [];
-  void createRoom() async {
-    roomId = await signaling.createRoom(_remoteRenderer);
-    print("=========");
-    print(roomId);
-    print("=========");
+  _createPeerConnection() async {
+    peerConnection = await createPeerConnection(configuration);
+    localStream = await _getUserMedia();
+    // localStream!.getTracks().forEach((track) {
+    //   peerConnection!.addTrack(track, localStream!);
+    // });
+    // peerConnection!.onTrack = (event) {
+    //   MediaStream? newMediaStream;
+    //   event.streams[0].getTracks().forEach((track) {
+    //     newMediaStream!.addTrack(track);
+    //     print("track");
+    //     print(newMediaStream);
+    //     print("track");
 
+    //     // setState(() {
+    //     //   localStream = newMediaStream;
+    //     // });
+    //   });
+    // };
+    // peerConnection!.addStream(localStream!);
+    peerConnection!.onAddStream = (stream) {
+      print('addStream: ' + stream.id);
+      _remoteRenderer.srcObject = stream;
+    };
     setState(() {});
   }
 
@@ -62,35 +138,15 @@ class _VideoChatState extends State<VideoChat> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              TextField(
-                controller: controller,
-              ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: SizedBox(
                     height: 300,
-                    child: Stack(
-                      children: [
-                        RTCVideoView(
-                          _localRenderer,
-                          objectFit:
-                              RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-                          mirror: true,
-                        ),
-                        Container(
-                            margin: const EdgeInsets.all(10),
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                                color: kLightBlueColor,
-                                borderRadius: BorderRadius.circular(3)),
-                            child: Text(
-                              "Samandar Mahamadjonov 18 y.o",
-                              style: TextStyle(
-                                color: kWhite,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ))
-                      ],
+                    child: RTCVideoView(
+                      _localRenderer,
+                      objectFit:
+                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                      mirror: true,
                     )),
               ),
               const SizedBox(
@@ -99,40 +155,12 @@ class _VideoChatState extends State<VideoChat> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: SizedBox(
-                    height: 300,
-                    child: RTCVideoView(
-                      _remoteRenderer,
-                      objectFit:
-                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-                    )),
-              ),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  FloatingActionButton(
-                    onPressed: () async {
-                      signaling.openUserMedia(_localRenderer, _remoteRenderer);
-                    },
-                    child: const Icon(Icons.camera),
+                  height: 300,
+                  child: RTCVideoView(
+                    _remoteRenderer,
+                    objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                   ),
-                  FloatingActionButton(
-                    onPressed: () {
-                      signaling.hangUp(_localRenderer);
-                    },
-                    backgroundColor: Colors.red,
-                    child: const Icon(Icons.phone_disabled_rounded),
-                  ),
-                  FloatingActionButton(
-                    onPressed: () {
-                      signaling.joinRoom(
-                          "GzYh07hJy1hkvoPy66XA", _remoteRenderer);
-                      setState(() {});
-                    },
-                    child:
-                        const Icon(Icons.keyboard_double_arrow_right_rounded),
-                  ),
-                ],
+                ),
               ),
             ],
           ),

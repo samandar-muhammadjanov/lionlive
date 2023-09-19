@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:quagga/precentation/widgets/ad.dart';
+import 'package:quagga/precentation/widgets/w_advertising.dart';
 
 void showAd(BuildContext context) {
   showCupertinoDialog(

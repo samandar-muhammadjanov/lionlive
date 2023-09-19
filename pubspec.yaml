@@ -45,6 +45,14 @@ dependencies:
   firebase_auth: ^4.9.0
   google_sign_in: ^6.1.5
   provider: ^6.0.5
+  hive: ^2.2.3
+  sdp_transform: ^0.3.2
+  http: ^1.1.0
+  url_launcher: ^6.1.14
+  country_picker: ^2.0.21
+  pinput: ^3.0.1
+  image_picker: ^1.0.4
+  firebase_storage: ^11.2.6
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +80,7 @@ flutter:
   assets:
     - assets/svg/
     - assets/fonts/
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

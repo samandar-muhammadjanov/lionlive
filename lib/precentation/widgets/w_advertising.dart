@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:quagga/domain/repository/repository.dart';
 import 'package:quagga/utils/colors.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Ad extends StatefulWidget {
   const Ad({super.key});
@@ -11,6 +13,33 @@ class Ad extends StatefulWidget {
 
 class _AdState extends State<Ad> {
   bool itsMonthly = true;
+  List<Map<String, dynamic>> list = [
+    {
+      "title": "Send The Letter directly while video calling",
+      "subtitle": "Send Messages Directly when Video Chatting",
+      "image": "assets/images/letter.png"
+    },
+    {
+      "title": "Unlimited Free Filters",
+      "subtitle": "Filter by: Location, Age, Gender, etc.",
+      "image": "assets/images/filter.png"
+    },
+    {
+      "title": "Infinite Video Matches, Matches in general and DMs",
+      "subtitle": "",
+      "image": "assets/images/infinity.png"
+    },
+    {
+      "title": "Enjoy the App without the Ads.",
+      "subtitle": "",
+      "image": "assets/images/block.png"
+    },
+    {
+      "title": "Custom Emoji Profile Photo",
+      "subtitle": "Select a Custom Emoji to Represent You",
+      "image": "assets/images/king.png"
+    }
+  ];
   @override
   Widget build(BuildContext context) {
     return CupertinoDialogAction(
@@ -38,20 +67,41 @@ class _AdState extends State<Ad> {
             ),
             child: Column(
               children: [
-                Image.asset(
-                  "assets/svg/block.png",
-                  width: 100,
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  "Enjoy The App without the Ads",
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: kBlack,
-                      fontFamily: "sfpro"),
+                Container(
+                  alignment: Alignment.center,
+                  height: 160,
+                  child: PageView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      final item = list[index];
+                      return Column(
+                        children: [
+                          Image.asset(
+                            item["image"],
+                            width: 100,
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Text(
+                            item["title"],
+                            style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: kBlack,
+                                fontFamily: "sfpro"),
+                          ),
+                          Text(
+                            item["subtitle"],
+                            style: TextStyle(
+                                color: kBlack.withAlpha(150),
+                                fontFamily: "sfpro"),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(
                   height: 20,
@@ -240,7 +290,15 @@ class _AdState extends State<Ad> {
                   height: 10,
                 ),
                 ElevatedButton(
-                  onPressed: () async {},
+                  onPressed: () async {
+                    final url = await Repository()
+                        .buyPremiuim(itsMonthly ? "monthly" : "weekly");
+
+                    if (!await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.externalApplication)) {
+                      throw Exception('Could not launch');
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     shadowColor: kPrimaryColor,

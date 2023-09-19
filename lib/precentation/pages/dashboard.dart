@@ -1,10 +1,11 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:quagga/functions/show_advertising.dart';
 import 'package:quagga/precentation/pages/chat_page.dart';
 import 'package:quagga/precentation/pages/home_page.dart';
 import 'package:quagga/precentation/pages/profile_page.dart';
-import 'package:quagga/precentation/widgets/drawer.dart';
+import 'package:quagga/precentation/widgets/w_drawer.dart';
 import 'package:quagga/utils/colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -32,7 +33,7 @@ class _DashboardState extends State<Dashboard> {
         foregroundColor: kWhite,
         centerTitle: true,
         title: Image.asset(
-          "assets/svg/lion.png",
+          "assets/images/lion.png",
           width: 40,
         ),
         leading: IconButton(
@@ -50,7 +51,9 @@ class _DashboardState extends State<Dashboard> {
             )),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              showAd(context);
+            },
             icon: SvgPicture.asset(
               "assets/svg/crown.svg",
               color: kWhite,

@@ -1,9 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:quagga/precentation/widgets/google_phone.dart';
-import 'package:quagga/precentation/widgets/login_via_email.dart';
-import 'package:quagga/precentation/widgets/register_widget.dart';
+import 'package:quagga/precentation/widgets/w_elevtaed_button.dart';
+import 'package:quagga/precentation/widgets/w_register_widget.dart';
+import 'package:quagga/precentation/widgets/w_textfield.dart';
 import 'package:quagga/utils/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -15,14 +15,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool isEmail = true;
-
-  void changeToPhone(bool isEmail) {
-    setState(() {
-      this.isEmail = isEmail;
-    });
-  }
-
   bool isPasswrodVisible = true;
   final auth = FirebaseAuth.instance;
   UserCredential? userCredential;
@@ -43,36 +35,45 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
-                LoginForm(
-                  key: const ValueKey("loginviaemail"),
-                  emailController: emailController,
-                  isPasswrodVisible: isPasswrodVisible,
-                  passwordController: passwordController,
-                  isEmail: isEmail,
+                Text(
+                  "Authintication",
+                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                        color: kWhite,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
-                ElevatedButton(
-                  onPressed: loginViaEmail,
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    shadowColor: kPrimaryColor,
-                    backgroundColor: kOrangeColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    minimumSize: const Size(double.infinity, 60),
-                  ),
-                  child: const Text(
-                    "Log In",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                const SizedBox(
+                  height: 20,
+                ),
+                WTextField(
+                  title: "Emial or Phone Number",
+                  controller: emailController,
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                WTextField(
+                  controller: passwordController,
+                  title: "Password",
+                  obscureText: isPasswrodVisible,
+                  suffix: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        isPasswrodVisible = !isPasswrodVisible;
+                      });
+                    },
+                    icon: Icon(
+                      isPasswrodVisible
+                          ? Icons.remove_red_eye_outlined
+                          : Icons.visibility_off_outlined,
                     ),
                   ),
                 ),
+                const SizedBox(
+                  height: 30,
+                ),
+                WElevetedButton(onPressed: loginViaEmail, title: "Log In"),
                 const Spacer(),
-                GoogleSignInAndPhoneNumberSignIn(
-                  text: emailController.text,
-                ),
                 const Spacer(),
                 const RegisterWidget(),
               ],
